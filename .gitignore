@@ -3,6 +3,8 @@ HELP.md
 # Plugins + providers téléchargés
 .terraform/
 
+.terraform.lock.hcl
+
 # État (ne jamais pousser dans Git)
 *.tfstate
 *.tfstate.*
