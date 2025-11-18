@@ -1,0 +1,76 @@
+<div class="layout-topbar">
+    <div class="layout-topbar-logo-container">
+        <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
+            <i class="pi pi-bars"></i>
+        </button>
+        <a class="layout-topbar-logo" routerLink="/">
+            <div class="img-container">
+                <img src="images/logo.png"/>
+            </div>
+            <span>{{applicationName}}</span>
+        </a>
+    </div>
+
+    <div class="layout-topbar-actions">
+        <div class="layout-config-menu">
+            <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()">
+                <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
+            </button>
+        </div>
+
+        <button class="layout-topbar-menu-button layout-topbar-action" pStyleClass="@next" enterFromClass="hidden" enterActiveClass="animate-scalein" leaveToClass="hidden" leaveActiveClass="animate-fadeout" [hideOnOutsideClick]="true">
+            <i class="pi pi-ellipsis-v"></i>
+        </button>
+
+        <div class="layout-topbar-menu hidden lg:block">
+            <div class="layout-topbar-menu-content">
+                
+                <div class="relative">
+
+                    
+                    <button
+                        class="layout-topbar-action"
+                        pStyleClass="@next"
+                        
+                        enterFromClass="hidden"
+                        enterActiveClass="animate-scalein"
+                        leaveToClass="hidden"
+                        leaveActiveClass="animate-fadeout"
+                        [hideOnOutsideClick]="true"
+                        >
+                        <i class="pi pi-user" style="font-size: 1.5rem"></i>
+                        <div class="flex flex-col justify-left leading-tight">
+                            <span class="text-left font-semibold text-gray-900">{{userDetails?.firstName}} {{userDetails?.lastName}}</span>
+                            <ng-container *ngFor="let userRole of userRoles">
+                                <span class="text-left text-gray-500">{{userRole.label}}</span>
+                            </ng-container>
+                        </div>
+                    </button>
+
+                    
+                    <div class="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4 hidden">
+                        <div class="flex flex-row items-center gap-4">
+                            <i class="pi pi-user" style="font-size: 1.5rem"></i>
+                            <div class="flex flex-col justify-left leading-tight">
+                                <span class="text-left font-semibold text-gray-900">{{userDetails?.firstName}} {{userDetails?.lastName}}</span>
+                                <ng-container *ngFor="let userRole of userRoles">
+                                    <span class="text-left text-gray-500">{{userRole.label}}</span>
+                                </ng-container>
+                            </div>
+                        </div>
+                    </div>
+                    
+                
+                </div>
+                <div class="hidden lg:flex flex-col justify-center leading-tight" style="margin-left: -0.75rem;">
+                    <span class="text-left">{{userDetails?.firstName}} {{userDetails?.lastName}}</span>
+                </div>
+
+                <button type="button" class="layout-topbar-action" (click)="logOut()">
+                    <i class="pi pi-sign-out"></i>
+                    <span>Déconnexion</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

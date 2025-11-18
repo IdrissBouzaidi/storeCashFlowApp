@@ -1,0 +1,22 @@
+HELP.md
+
+# Plugins + providers téléchargés
+.terraform/
+
+# État (ne jamais pousser dans Git)
+*.tfstate
+*.tfstate.*
+
+# Variables sensibles
+*.tfvars
+*.tfvars.json
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Ignorer les fichiers d’override
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

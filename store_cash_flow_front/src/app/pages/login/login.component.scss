@@ -1,0 +1,22 @@
+
+.img-container {
+    display: flex;
+    justify-content: center;
+
+    img {
+        width: 150px;
+    }
+}
+
+.form-label {
+    margin-top: 30px;
+}
+
+.form-input {
+    display: block;
+    margin-bottom: 0px;
+}
+
+small {
+    color: red;
+}

@@ -1,0 +1,44 @@
+
+<form [formGroup]="form">
+    <div class="flex card flex-col w-full gap-8">
+    
+        <div class="font-semibold text-xl mb-2">Financial operations: Advances</div>
+        <div class="flex flex-column gap-6">
+            <div class="flex gap-4">
+                <p-floatlabel variant="on">
+                    <p-datepicker id="startDateMin" [showButtonBar]="true"
+                    formControlName="startDateMin" dateFormat="dd MM yy" />
+                    <label for="startDateMin">Start date min</label>
+                </p-floatlabel>
+                <p-floatlabel variant="on">
+                    <p-datepicker id="startDateMax" [showButtonBar]="true"
+                    formControlName="startDateMax" dateFormat="dd MM yy" />
+                    <label for="startDateMax">Start date max</label>
+                </p-floatlabel>
+                <p-floatlabel variant="on">
+                    <p-datepicker id="endDateMin" [showButtonBar]="true"
+                    formControlName="endDateMin" dateFormat="dd MM yy" />
+                    <label for="endDateMin">End date min</label>
+                </p-floatlabel>
+                <p-floatlabel variant="on">
+                    <p-datepicker id="endDateMax" [showButtonBar]="true"
+                    formControlName="endDateMax" dateFormat="dd MM yy" />
+                    <label for="endDateMax">End date max</label>
+                </p-floatlabel>
+                <app-autocomplete
+                    [(details)]="periodStatesAutocompleteDetails"
+                    [control]="form.get('stateId')" />
+            </div>
+            <div class="flex">
+                <p-button label="Search" icon="pi pi-search" [loading]="searchButtonIsLoading" (click)="getData()" />
+            </div>
+        </div>
+        <ng-container *ngIf="periodsList$">
+            <app-periods-array [dataList$]="periodsList$" (onAddButtonClick)="onAddButtonClick()"/>
+        </ng-container>
+    </div>
+</form>
+
+<app-transaction-adding-form [dialogStatus]="addingDialogStatus"
+                            (dialogStatusChange)="onDialogStatusChanged($event)"
+                            *ngIf="addingDialogStatus.dialogIsVisible" />

@@ -1,0 +1,175 @@
+version: "3.9"
+
+name: storecashflow_dev
+
+services:
+  mysql:
+    image: mysql
+    container_name: mysql-db-dev
+    restart: always
+    environment:
+      MYSQL_DATABASE: store_cash_flow_db_dev
+      MYSQL_ROOT_PASSWORD: abcd
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-dev-volume:/var/lib/mysql
+    networks:
+      - dev-network
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.1
+    container_name: keycloak-dev
+    command: start
+
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      
+      KC_DB: mysql
+      KC_DB_URL_HOST: mysql
+      KC_DB_URL_DATABASE: keycloak_db
+      KC_DB_USERNAME: root
+      KC_DB_PASSWORD: abcd
+
+
+      # 🔸 Mode HTTP local sans proxy
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: "keycloak"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HOSTNAME_STRICT_HTTPS: "false"
+      KC_PROXY: "none"   # ⬅️ c’est ça le plus important !
+
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql
+    networks:
+      - dev-network
+
+
+  minio:
+    image: quay.io/minio/minio
+    container_name: minio-dev
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-dev-volume:/data
+    environment:
+      # IMPORTANT: URLs
+      MINIO_BROWSER_REDIRECT_URL: "http://localhost:9001"
+      MINIO_SERVER_URL: "http://localhost:9000"
+      MINIO_DEBUG: "on"
+
+      # Optionnel: accès root local
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: aaaa1111AAAA
+
+    command: server /data --console-address ":9001"
+    restart: always
+    networks:
+      - dev-network
+  
+  minioapi:
+    container_name: minio-api-dev
+    build:
+      context: ./storeCashFlowServices
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: min-io-api
+    ports:
+      - "9093:9093"
+    environment:
+      - KEYCLOAK=keycloak
+      - MIN_IO=minio
+      - MIN_IO_API_PORT=9093
+    depends_on:
+      - keycloak
+      - minio
+    networks:
+      - dev-network
+
+  keycloakapi:
+    container_name: keycloak-api-dev
+    build:
+      context: ./storeCashFlowServices
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: keycloak-api
+    ports:
+      - "9092:9092"
+    environment:
+      - KEYCLOAK=keycloak
+      - KEYCLOAK_API_PORT=9092
+    depends_on:
+      - keycloak
+    networks:
+      - dev-network
+
+  userapi:
+    container_name: user-api-dev
+    build:
+      context: ./storeCashFlowServices
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: user-api
+    ports:
+      - "9091:9091"
+    environment:
+      MYSQL: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: store_cash_flow_db_dev
+      KEYCLOAK: keycloak
+      USER_API_PORT: 9091
+    depends_on:
+      - keycloak
+      - mysql
+    networks:
+      - dev-network
+
+  storecashflowapi:
+    container_name: store-cash-flow-api-dev
+    build:
+      context: ./storeCashFlowServices
+      dockerfile: Dockerfile
+      args:
+        MODULE_NAME: store-cash-flow-api
+    ports:
+      - "9090:9090"
+    environment:
+      MYSQL: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: store_cash_flow_db_dev
+      KEYCLOAK: keycloak
+      USER_API: userapi
+      STORE_CASH_FLOW_PORT: 9090
+    depends_on:
+      - keycloak
+      - mysql
+    networks:
+      - dev-network
+
+  storecashflowfront:
+    container_name: store-cash-flow-front-dev
+    build:
+      context: ./store_cash_flow_front
+      dockerfile: Dockerfile.dev
+      args:
+        MODULE_NAME: store-cash-flow-front
+    ports:
+      - "4202:80"
+    depends_on:
+      - storecashflowapi
+    networks:
+      - dev-network
+
+volumes:
+  mysql-dev-volume:
+    external: true
+  minio-dev-volume:
+    external: true
+
+networks:
+  dev-network:
+    driver: bridge

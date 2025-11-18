@@ -1,0 +1,56 @@
+<form [formGroup]="form" (ngSubmit)="getData()" id="productsForm">
+    <div class="flex card flex-col w-full gap-8">
+        
+        <div class="font-semibold text-xl mb-2">Financial operations: Consumable inputs</div>
+        <div class="flex flex-column gap-6">
+            <div class="flex gap-4">
+
+                <!-- 📅 Date de création minimale -->
+                <p-floatlabel variant="on">
+                    <p-datepicker
+                        id="addingDateMin"
+                        addingDateMin
+                        [showButtonBar]="true"
+                        dateFormat="dd MM yy" />
+                    <label for="addingDateMin">Adding date min</label>
+                </p-floatlabel>
+
+                <!-- 📅 Date de création maximale -->
+                <p-floatlabel variant="on">                
+                    <p-datepicker
+                        id="addingDateMax"
+                        formControlName="addingDateMax"
+                        [showButtonBar]="true"
+                        dateFormat="dd MM yy" />
+                    <label for="addingDateMax">Adding date max</label>
+                </p-floatlabel>
+
+                <!-- 🧾 Sélecteur d’état du produit -->
+                <app-autocomplete
+                    [(details)]="productStatesAutocompleteDetails"
+                    [control]="form.get('productState')" />
+
+                <!-- 👤 Créateur -->
+                <app-autocomplete
+                    [(details)]="creatorAutocompleteDetails"
+                    [control]="form.get('creator')" />
+
+                <!-- 🏷️ Catégorie -->
+                <app-autocomplete
+                    [(details)]="categoriesAutocompleteDetails"
+                    [control]="form.get('category')" />
+            </div>
+            <div class="flex">
+                <p-button label="Search" type="submit" icon="pi pi-search" [loading]="searchButtonIsLoading" form="productsForm" />
+            </div>
+        </div>
+        <ng-container *ngIf="productsList$">
+            <app-products-array [dataList$]="productsList$" (onAddButtonClick)="onAddButtonClick()"/>
+        </ng-container>
+    </div>
+
+    <app-product-adding-form [dialogStatus]="addingDialogStatus"
+                                (dialogStatusChange)="onDialogStatusChanged($event)"
+                                *ngIf="addingDialogStatus.dialogIsVisible" />
+
+</form>

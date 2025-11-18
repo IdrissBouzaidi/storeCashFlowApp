@@ -1,0 +1,321 @@
+
+<form [formGroup]="form" (ngSubmit)="onSubmit(true)" id="form">
+    <p-dialog [visible]="dialogStatus.dialogIsVisible"
+        header="Adding consumable Inputs"
+        [modal]="true" (visibleChange)="cancelInputAdding()"  (click)="onPageClick($event)"
+    >
+        <ng-template #content>
+            
+            <p-table
+                #dt1
+                [value]="data"
+                dataKey="id"
+                [rows]="10"
+                [rowsPerPageOptions]="[10, 25, 50]"
+                [style]="{ width: '90vw', maxHeight: '90vh' }"
+                [loading]="tableIsLoading"
+                [rowHover]="true"
+                [paginator]="data.length > 10"
+                [showGridlines]="true"
+                [scrollable]="true"
+                scrollHeight="30rem"
+                [globalFilterFields]="attributesCodes"
+                [resizableColumns]="true"
+                columnResizeMode="expand"
+                class="p-table flex w-auto costum-table"
+                styleClass="p-datatable-gridlines"
+                [size]="'small'"
+                responsiveLayout="scroll"
+                [(selection)]="selectedData"
+
+                sortMode="multiple"
+                editMode="cell"
+            >
+
+                <ng-template #caption>
+                    <div class="flex flex-row justify-between items-center mr-4">
+                        <div class="flex flex-column sm:flex-row p-3 border-b-2">
+                            <p-button label="Delete" icon="pi pi-filter-slash" (click)="clear(dt1)" />
+                        </div>
+                        <p-button label="Add" icon="pi pi-plus-circle" (click)="addEmptyLine()" />
+                    </div>
+                </ng-template>
+
+                <ng-template #header>
+                    <tr>
+                        <th pFrozenColumn><p-tableHeaderCheckbox class="ml-2 mr-2" /></th>
+                        
+                        @for(code of attributesCodes; track code) {
+                            @if(!selectedData || selectedData.length === 0) {
+                                <th pResizableColumn [pSortableColumn]="code">
+                                    <ng-template [ngTemplateOutlet]="thContent"
+                                        [ngTemplateOutletContext]="{ code: code }"></ng-template>
+                                </th>
+                            }
+                            @else {
+
+                                <th pResizableColumn>
+                                    <ng-template [ngTemplateOutlet]="thContent"
+                                        [ngTemplateOutletContext]="{ code: code }"></ng-template>
+                                </th>
+                            }
+
+                            <ng-template #thContent let-code="code">
+                                <div class="flex justify-between items-center gap-3">
+                                    <div>
+                                        {{attributsDetailsMap[code].libelle}}
+                                        @if(attributsDetailsMap[code].isMontant) {
+                                            <span>&nbsp;(DH)</span>
+                                        }
+                                        @if(attributsDetailsMap[code].required) {
+                                            <span>&nbsp;*</span>
+                                        }
+                                    </div>
+                                    <div>
+                                        <p-sortIcon [field]="code" />
+                                        <p-columnFilter [type]="attributsDetailsMap[code].type" [field]="code" display="menu" />
+                                    </div>
+                                </div>
+                                @if(selectedData && selectedData.length>0) {
+                                    <ng-template [ngTemplateOutlet]="modifiableLine"
+                                        [ngTemplateOutletContext]="{ code: code, item: headerDataLine, form: headerForm }"></ng-template>
+                                }
+                            </ng-template>
+                        }
+                        <th class="w-16"></th>
+                    </tr>
+                </ng-template>
+
+                <ng-template pTemplate="body" let-item let-ri="rowIndex">
+                    <tr (click)="onRowClick(item)">
+                    
+                        <td class="justify-center" pFrozenColumn>
+                            <p-tableCheckbox class="ml-2 mr-2" [value]="item" />
+                        </td>
+                        @for(code of attributesCodes; track code) {
+                            <td class="array-td" pEditableColumn>
+                                
+                                @if(item.edition) {
+                                    
+                                    <ng-template [ngTemplateOutlet]="modifiableLine"
+                                        [ngTemplateOutletContext]="{ code: code, item: item, form: form }">
+                                    </ng-template>
+                                }
+                                @else {
+                                    <div class="flex items-center gap-2">
+                                        @if(attributsDetailsMap[code].type === 'date' && isDate(item[code])) {
+                                            {{item[code] | date: 'dd/MM/yyyy'}}
+                                        }
+                                        @else if(attributsDetailsMap[code].type === 'time' && isDate(item[code])) {
+                                            {{item[code] | date: 'HH:mm:ss'}}
+                                        }
+                                        @else if(attributsDetailsMap[code].type === 'numeric') {
+                                            <span style="width: 95%" class="text-right">
+                                                {{item[code]}}
+                                            </span>
+                                        }
+                                        @else if(attributsDetailsMap[code].type === 'image' && item[code]) {
+                                            <div class="flex items-center justify-center w-full bg-gray-50 gap-2">
+                                                <img 
+                                                    [src]="imagesDetailsMap[item[code].imageDetailsKey].fileInternalUrl"
+                                                    class="max-h-14 object-contain" 
+                                                />
+                                                <p-tag
+                                                    *ngIf="imagesDetailsMap[item[code].imageDetailsKey].uploadInfo"
+                                                    [value]="imagesDetailsMap[item[code].imageDetailsKey].uploadInfo?.label"
+                                                    [icon]="imagesDetailsMap[item[code].imageDetailsKey].uploadInfo?.icon"
+                                                    [severity]="imagesDetailsMap[item[code].imageDetailsKey].uploadInfo?.severity">
+                                                </p-tag>
+                                            </div>
+                                        }
+                                        @else if(attributsDetailsMap[code].type === 'autoComplete' && item[code]) {
+                                            {{ attributsDetailsMap[code]!.autoCompleteDetails!.valuesMap[item[code]]?.label }}
+                                        }
+                                        @else {
+                                            {{item[code]}}
+                                        }
+                                    </div>
+                                }
+                            </td>
+                        }
+                        <td>
+                            <div class="flex items-center justify-center gap-2">
+                                <button
+                                    pButton
+                                    pRipple
+                                    type="button"
+                                    icon="pi pi-trash"
+                                    (click)="deleteLine(item)"
+                                    text
+                                    rounded
+                                    severity="secondary"
+                                ></button>
+                            </div>
+                        </td>
+                    </tr>
+                </ng-template>
+                
+                <ng-template #emptymessage>
+                    <tr>
+                        <td [attr.colspan]="attributesCodes.length+2">Tableau vide.</td>
+                    </tr>
+                </ng-template>
+
+                
+                <ng-template #modifiableLine let-code="code" let-item="item" let-form="form">
+                    <div class="flex items-center gap-2">
+
+                        @if(attributsDetailsMap[code].type === 'date' || attributsDetailsMap[code].type === 'time') {
+                            <div>
+                                <p-floatlabel variant="on">
+                                    <p-datepicker
+                                        [id]="code"
+                                        [formControlName]="code"
+                                        [timeOnly]="attributsDetailsMap[code].type === 'time'? true: false"
+                                        [showButtonBar]="true"
+                                        appendTo="body"
+                                        (onSelect)="onInputChange($event, item, code)"
+                                        [class.ng-invalid]="form.get(code)?.invalid && form.get(code)?.touched"
+                                        [class.ng-dirty]="true">
+                                    </p-datepicker>
+                                    <label [for]="code">{{attributsDetailsMap[code].libelle}} {{attributsDetailsMap[code].required? ' *': ''}}</label>
+                                </p-floatlabel>
+                                <div *ngIf="form.get(code)?.invalid && form.get(code)?.touched" class="text-red-500 text-sm ml-1">
+                                    {{getFieldError(code)}}
+                                </div>
+                            </div>
+                        }
+                        @else if(attributsDetailsMap[code].type === 'numeric') {
+                            
+                            <div>
+                                <p-floatlabel variant="on">
+                                    <p-inputnumber [id]="code" [formControlName]="code"
+                                        mode="decimal" [min]="0" [maxFractionDigits]="attributsDetailsMap[code].isDecimal? 2: 0"
+                                        class="flex w-full"
+                                        (onInput)="onInputChange($event.value, item, code)"
+                                        [class.ng-invalid]="form.get(code)?.invalid && form.get(code)?.touched"
+                                        [class.ng-dirty]="true" />
+                                    <label [for]="code">{{attributsDetailsMap[code].libelle}} {{attributsDetailsMap[code].required? ' *': ''}}</label>
+                                </p-floatlabel>
+                                <div *ngIf="form.get(code)?.invalid && form.get(code)?.touched" class="text-red-500 text-sm ml-1">
+                                    {{getFieldError(code)}}
+                                </div>
+                            </div>
+                        }
+                        @else if(attributsDetailsMap[code].type === 'image') {
+                            <div class="flex flex-col items-center">
+                                <p-fileUpload 
+                                    mode="basic"
+                                    name="image"
+                                    accept="image/*"
+                                    (onSelect)="onImageSelected($event, item, code)"
+                                    [auto]="true"
+                                    chooseLabel="Browse"
+                                    chooseIcon="pi pi-upload"
+                                    class="p-button-sm"
+                                ></p-fileUpload>
+
+                                <!-- Prévisualisation -->
+                                <div *ngIf="item[code]" class="flex gap-2 items-center">
+
+                                    <img 
+                                        [src]="imagesDetailsMap[item[code].imageDetailsKey].fileInternalUrl"
+                                        class="max-h-20 object-contain rounded"
+                                    />
+
+                                    <!-- Icône Annuler -->
+                                    <i 
+                                        class="pi pi-times cursor-pointer hover:text-red-800 text-lg"
+                                        (click)="cancelImage(item, code)">
+                                    </i>
+
+                                </div>
+                            </div>
+
+                        }
+                        @else if(attributsDetailsMap[code].type === 'autoComplete') {
+                            <app-autocomplete
+                                [(details)]="attributsDetailsMap[code].autoCompleteDetails"
+                                [required]="attributsDetailsMap[code]?.required?? false"
+                                [control]="form.get(code)"
+                                (onSelect)="onInputChange($event?.id, item, code)"
+                            />
+                        }
+                        @else {
+                            <div>
+                                <p-floatlabel variant="on">
+                                    <input pInputText [id]="code" [formControlName]="code"
+                                        class="flex w-full" type="text"
+                                        (input)="onInputChange($any($event.target).value, item, code)"
+                                        [class.ng-invalid]="form.get(code)?.invalid && form.get(code)?.touched"
+                                        [class.ng-dirty]="true" />
+                                    <label [for]="code">{{attributsDetailsMap[code].libelle}} {{attributsDetailsMap[code].required? ' *': ''}}</label>
+                                </p-floatlabel>
+                                <div *ngIf="form.get(code)?.invalid && form.get(code)?.touched" class="text-red-500 text-sm ml-1">
+                                    {{getFieldError(code)}}
+                                </div>
+                            </div>
+                        }
+                        @if(item === headerDataLine) {
+                            <div class="flex justify-end">
+                                <button
+                                    pButton
+                                    type="button"
+                                    icon="pi pi-check"
+                                    class="p-button-sm bg-green-100 text-green-700 border border-green-300 hover:bg-green-200 w-7 h-7 flex items-center justify-center rounded-md"
+                                    (click)="onHeaderInputSubmit(code)"
+                                    >
+                                </button>
+                            </div>
+                        }
+                    </div>
+                    
+                </ng-template>
+            </p-table>
+            
+            <!-- Footer -->
+            <div class="flex justify-between mt-4">
+                <p-button label="Cancel" icon="pi pi-times" text (click)="cancelInputAdding()" />
+                <p-button label="Save" icon="pi pi-check" type="submit" form="form" [loading]="submitIsLoading" [disabled]="!data || data.length === 0" />
+            </div>
+        </ng-template>
+    </p-dialog>
+</form>
+
+<!-- Dialogue de confirmation -->
+<p-dialog 
+    header="Confirm Save"
+    [(visible)]="saveWithoutCheckingImagesDialogIsVisible"
+    [modal]="true"
+    [closable]="false"
+    [style]="{width: '30rem'}"
+>
+    <div class="p-d-flex p-flex-column p-ai-center p-text-center">
+        <p class="text-lg font-medium">
+        Some images have not been uploaded.
+        </p>
+        <p>Are you sure you want to continue saving anyway?</p>
+    </div>
+
+    <!-- Boutons du footer -->
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+        <button 
+            pButton 
+            label="Cancel" 
+            icon="pi pi-times" 
+            class="p-button-text" 
+            (click)="saveWithoutCheckingImagesDialogIsVisible = false">
+        </button>
+
+        <button 
+            pButton 
+            label="Save Anyway" 
+            icon="pi pi-check" 
+            class="p-button-warning" 
+            (click)="onSubmit(false)">
+        </button>
+        </div>
+    </ng-template>
+</p-dialog>
+

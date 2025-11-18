@@ -1,0 +1,42 @@
+<div class="flex card flex-col w-full gap-8">
+    
+    <div class="font-semibold text-xl mb-2">Financial operations: Consumable inputs</div>
+    <div class="flex flex-column gap-6">
+        <div class="flex gap-4">
+            <app-autocomplete
+                [(details)]="productsAutocompleteDetails"
+                [control]="form.get('product')" />
+            <p-floatlabel variant="on">
+                <p-datepicker id="transactionDateMin" [(ngModel)]="selectedTransactionDateMin" [showButtonBar]="true" dateFormat="dd MM yy" />
+                <label for="transactionDateMin">Transaction date min</label>
+            </p-floatlabel>
+            <p-floatlabel variant="on">
+                <p-datepicker id="transactionDateMax" [(ngModel)]="selectedTransactionDateMax" [showButtonBar]="true" dateFormat="dd MM yy" />
+                <label for="transactionDateMax">Transaction date max</label>
+            </p-floatlabel>
+            <app-autocomplete
+                [(details)]="productsTransactionStatesAutocompleteDetails"
+                [control]="form.get('productsTransactionStates')" />
+            <app-autocomplete
+                [(details)]="periodsAutocompleteDetails"
+                [control]="form.get('period')" />
+            <app-autocomplete
+                [(details)]="executedByAutocompleteDetails"
+                [control]="form.get('executedBy')" />
+        </div>
+        <div class="flex">
+            <p-button label="Search" icon="pi pi-search" [loading]="searchButtonIsLoading" (click)="getData()" />
+        </div>
+    </div>
+    <ng-container *ngIf="productsTransactionStatesAutocompleteDetails?.values">
+        <app-cons-input-array [dataList$]="consInputsList$" (onAddConsInputClick)="onAddConsInputClick($event)"/>
+    </ng-container>
+</div>
+
+<app-transaction-adding-form [dialogStatus]="addConsInputDialogStatus"
+                            (dialogStatusChange)="onDialogStatusChanged($event)"
+                            *ngIf="addConsInputDialogStatus.id === 1 && addConsInputDialogStatus.dialogIsVisible" />
+
+<app-transaction-multiple-adding-form [dialogStatus]="addConsInputDialogStatus"
+                            (dialogStatusChange)="onDialogStatusChanged($event)"
+                            *ngIf="addConsInputDialogStatus.id === 2 && addConsInputDialogStatus.dialogIsVisible" />

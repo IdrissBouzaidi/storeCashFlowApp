@@ -1,0 +1,10 @@
+export const VIEW_ALL_OPERATIONS_ACTION: number = 1;
+export const VIEW_CONS_INPUTS_ACTION: number = 2;
+export const VIEW_NOT_CONS_INPUT_ACTION: number = 3;
+export const VIEW_OUTPUT_ACTION: number = 4;
+export const VIEW_CHARGE_ACTION: number = 5;
+export const VIEW_CAPITAL_CONTRIBUTION_ACTION: number = 6;
+export const VIEW_ADVANCE_ACTION: number = 7;
+export const VIEW_OUT_OF_POCKET_EXPENSE_ACTION: number = 8;
+export const VIEW_CUSTOMER_CREDIT_ACTION: number = 9;
+export const VIEW_EXTERNAL_LOAN_ACTION: number = 10;

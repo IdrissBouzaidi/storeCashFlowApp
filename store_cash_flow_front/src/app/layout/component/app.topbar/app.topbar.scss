@@ -1,0 +1,20 @@
+.layout-topbar-logo {
+    .img-container {
+        display: flex;
+        justify-content: center;
+        margin-right: 40px;
+
+        img {
+            height: auto;
+            width: 60px;
+        }
+    }
+
+    span {
+        width: 220px;
+    }
+}
+button.user-image-style {
+    width: 2.75rem !important;
+    height: 2.75rem !important;
+}

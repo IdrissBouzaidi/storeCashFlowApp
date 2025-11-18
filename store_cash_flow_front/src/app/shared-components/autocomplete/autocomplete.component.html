@@ -1,0 +1,24 @@
+<ng-container *ngIf="details as details">
+    <p-floatlabel variant="on">
+        <p-autocomplete
+            [id]="details.id"
+            [optionLabel]="details.optionLabel"
+            [dropdown]="true"
+            [suggestions]="details.filteredValues"
+            (completeMethod)="filterValues($event)"
+            (onBlur)="choseValue(control?.value)"
+            (onSelect)="selectValue($event.value)"
+            (keydown.enter)="choseValue(control?.value)"
+            emptyMessage="La liste est vide"
+            appendTo="body"
+            [required]="required"
+            [formControl]="control"
+            [class.ng-invalid]="control?.invalid && control?.touched"
+            [class.ng-dirty]="true"
+        />
+        <label [for]="details.id">{{details.label}}</label>
+    </p-floatlabel>
+    <div *ngIf="control?.invalid && control?.touched" class="text-red-500 text-sm ml-1">
+        {{getFieldError()}}
+    </div>
+</ng-container>

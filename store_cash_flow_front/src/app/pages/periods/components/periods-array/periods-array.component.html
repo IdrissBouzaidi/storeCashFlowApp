@@ -1,0 +1,258 @@
+<p-table
+    #dt1
+    [value]="data"
+    dataKey="id"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [loading]="dataIsLoading"
+    [rowHover]="true"
+    [paginator]="data.length>10"
+    [showGridlines]="true"
+    [scrollable]="true"
+    scrollHeight="30rem"
+    [globalFilterFields]="attributesCodes"
+    [resizableColumns]="true"
+    columnResizeMode="expand"
+    styleClass="p-datatable-gridlines"
+    [size]="'small'"
+    responsiveLayout="scroll"
+
+    sortMode="multiple"
+    [multiSortMeta]="multiSortMeta"
+
+    selectionMode="single"
+    [(selection)]="selectedLine"
+>
+    
+    <ng-template #caption>
+        <div class="flex flex-column sm:flex-row p-3 border-b-2 justify-between">
+            <p-button label="Effacer les filtres" icon="pi pi-filter-slash" (click)="clear(dt1)" />
+            <div class="flex gap-4">
+                <p-button label="Close current period" icon="pi pi-lock" severity="secondary" class="mr-2" [disabled]="!somePeriodIsInProgress" (onClick)="closePeriodDialogIsVisible = true" />
+                <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" [disabled]="somePeriodIsInProgress" (onClick)="onAddButtonClick.emit()" />
+            </div>
+        </div>
+    </ng-template>
+
+
+    <ng-template #header>
+        <tr>
+            <th pFrozenColumn><p-tableHeaderCheckbox class="ml-2 mr-2" /></th>
+            @for(code of attributesCodes; track code) {
+                @if(code === 'id') {
+                    <th pResizableColumn [pSortableColumn]="code" pFrozenColumn>
+                        <ng-container [ngTemplateOutlet]="headerTemplate" [ngTemplateOutletContext]=" {code: code} "></ng-container>
+                    </th>
+                }
+                @else {
+                    <th pResizableColumn [pSortableColumn]="code">
+                        <ng-container [ngTemplateOutlet]="headerTemplate" [ngTemplateOutletContext]=" {code: code} "></ng-container>
+                    </th>
+                }
+            }
+            <ng-template #headerTemplate let-code="code">
+                <div class="flex justify-between items-center gap-3">
+                    <div>
+                        {{attributsDetailsMap[code].libelle}}<span *ngIf="attributsDetailsMap[code].isMontant">&nbsp;(DH)</span>
+                    </div>
+                    <div>
+                        <p-sortIcon [field]="code" />
+                        <p-columnFilter [type]="attributsDetailsMap[code].type" [field]="code" display="menu" />
+                    </div>
+                </div>
+            </ng-template>
+            <th alignFrozen="right" pFrozenColumn balanceFrozen="true"></th>
+        </tr>
+    </ng-template>
+    <ng-template #body let-item>
+        <tr [pSelectableRow]="item" class="body-tr" >
+            <td class="justify-center" pFrozenColumn>
+                <p-tableCheckbox [value]="item" class="ml-2 mr-2" />
+            </td>
+            @for(code of attributesCodes; track code) {
+                @if(code === 'id') {
+                    <td class="array-td" pFrozenColumn style="width: 95%" class="text-right">
+                        <div class="flex items-center gap-2">
+                            {{item[code]}}
+                        </div>
+                    </td>
+                }
+                @else {
+                    <td class="array-td">
+                        <div class="flex items-center gap-2">
+                            @if(attributsDetailsMap[code].type === 'date' && isDate(item[code])) {
+                                {{item[code] | date: 'dd/MM/yyyy'}}
+                            }
+                            @else if(attributsDetailsMap[code].type === 'time' && isDate(item[code])) {
+                                {{item[code] | date: 'HH:mm:ss'}}
+                            }
+                            @else if(attributsDetailsMap[code].type === 'numeric') {
+                                <span style="width: 95%" class="text-right">
+                                    {{item[code]}}
+                                </span>
+                            }
+                            @else if(attributsDetailsMap[code].type === 'list' && attributsDetailsMap[code].listCode) {
+                                {{refTablesMap[attributsDetailsMap[code].listCode][item[code]]?.label}}
+                            }
+                            @else {
+                                {{item[code]}}
+                            }
+                        </div>
+                    </td>
+                }
+            }
+            <td class="array-td" alignFrozen="right" pFrozenColumn balanceFrozen="true">
+                <div class="options-menu flex justify-center">
+                    <p-button (click)="toggleMenu(item, $event)" icon="pi pi-ellipsis-v"/>
+                </div>
+            </td>
+        </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+        <tr>
+            <td colspan="7">Tableau vide.</td>
+        </tr>
+    </ng-template>
+</p-table>
+<p-menu #menu [model]="items" [popup]="true" appendTo="body" />
+
+<form [formGroup]="closePeriodForm" (ngSubmit)="onClosePeriodConfirm()" id="closePeriodForm">
+
+    <p-dialog 
+        header="Confirm Closing"
+        [(visible)]="closePeriodDialogIsVisible"
+        [modal]="true"
+        [style]="{width: '30rem'}"
+    >
+        <div class="flex mt-4 mb-4 gap-4">
+
+            <!-- End date -->
+            <div>
+                <p-floatlabel variant="on">
+                    <p-datepicker id="endDate"
+                        formControlName="endDate"
+                        [showButtonBar]="true"
+                        dateFormat="dd MM yy"
+                        appendTo="body"
+                        [class.ng-invalid]="closePeriodForm.get('endDate')?.invalid && closePeriodForm.get('endDate')?.touched"
+                        [class.ng-dirty]="true" />
+                    <label for="endDate">End date</label>
+                </p-floatlabel>
+                <div *ngIf="closePeriodForm.get('endDate')?.invalid && closePeriodForm.get('endDate')?.touched" class="text-red-500 text-sm ml-1">
+                    {{getFieldError('endDate')}}
+                </div>
+            </div>
+
+            <!-- End Time -->
+            <div>
+                <p-floatlabel variant="on">
+                    <p-datepicker 
+                        id="endTime"
+                        formControlName="endTime"
+                        [timeOnly]="true"
+                        [showButtonBar]="true"
+                        appendTo="body"
+                        [class.ng-invalid]="closePeriodForm.get('endTime')?.invalid && closePeriodForm.get('endTime')?.touched"
+                        [class.ng-dirty]="true">
+                    </p-datepicker>
+                    <label for="endTime">End time</label>
+                </p-floatlabel>
+                <div *ngIf="closePeriodForm.get('endTime')?.invalid && closePeriodForm.get('endTime')?.touched" class="text-red-500 text-sm ml-1">
+                    {{getFieldError('endTime')}}
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer buttons -->
+        <ng-template pTemplate="footer">
+            <div class="flex justify-end gap-2">
+                <button 
+                    pButton 
+                    label="Cancel" 
+                    icon="pi pi-times" 
+                    class="p-button-text" 
+                    (click)="closePeriodDialogIsVisible = false">
+                </button>
+
+                <button 
+                    pButton 
+                    label="Close Period" 
+                    icon="pi pi-lock" 
+                    class="p-button-danger"
+                    form="closePeriodForm"
+                    >
+                </button>
+            </div>
+        </ng-template>
+    </p-dialog>
+</form>
+
+<p-dialog 
+    header="Confirm Cancelation"
+    [(visible)]="cancelPeriodDialogIsVisible"
+    [modal]="true"
+    [style]="{width: '30rem'}"
+>
+    <div class="flex flex-col mt-4 mb-4 gap-4">
+        <p class="text-gray-700">
+            Are you sure you want to <b>cancel</b> this period?  
+            This action will mark the period as <b>canceled</b>.
+        </p>
+    </div>
+
+    <!-- Footer buttons -->
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+            <button 
+                pButton 
+                label="No" 
+                icon="pi pi-times" 
+                class="p-button-text" 
+                (click)="cancelPeriodDialogIsVisible = false">
+            </button>
+
+            <button 
+                pButton 
+                label="Yes, Cancel Period" 
+                icon="pi pi-ban" 
+                class="p-button-danger"
+                (click)="onConfirmCancelPeriod()">
+            </button>
+        </div>
+    </ng-template>
+</p-dialog>
+
+<p-dialog 
+    header="Confirm Reopening"
+    [(visible)]="reopenPeriodDialogIsVisible"
+    [modal]="true"
+    [style]="{width: '30rem'}"
+>
+    <div class="flex flex-col mt-4 mb-4 gap-4">
+        <p class="text-gray-700">
+            Do you want to <b>reopen</b> this closed period?  
+            The period status will be changed back to <b>in progress</b>.
+        </p>
+    </div>
+
+    <!-- Footer buttons -->
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+            <button 
+                pButton 
+                label="Cancel" 
+                icon="pi pi-times" 
+                class="p-button-text" 
+                (click)="reopenPeriodDialogIsVisible = false">
+            </button>
+
+            <button 
+                pButton 
+                label="Yes, Reopen Period" 
+                icon="pi pi-refresh" 
+                class="p-button-success"
+                (click)="onConfirmReopenPeriod()">
+            </button>
+        </div>
+    </ng-template>
+</p-dialog>

@@ -1,0 +1,94 @@
+<p-dialog [visible]="dialogStatus.dialogIsVisible" [style]="{ width: '450px' }" header="Adding Products"
+    [modal]="true" (visibleChange)="cancelAdding()">
+    <ng-template #content>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" id="productForm">
+            <div class="flex flex-col mt-2 gap-4">
+                <div class="flex gap-4">
+                    <!-- Colonne gauche -->
+                    <div class="flex flex-col w-1/2 gap-4">
+                        <!-- Short description -->
+                        <div>
+                            <p-floatlabel variant="on">
+                                <input pInputText id="shortDesc" type="text"
+                                    class="flex w-full" formControlName="shortDesc"
+                                    [class.ng-invalid]="form.get('shortDesc')?.invalid && form.get('shortDesc')?.touched"
+                                    [class.ng-dirty]="true" />
+                                <label for="shortDesc">Short description *</label>
+                            </p-floatlabel>
+                            <div *ngIf="form.get('shortDesc')?.invalid && form.get('shortDesc')?.touched" class="text-red-500 text-sm ml-1">
+                                {{getFieldError('shortDesc')}}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colonne droite -->
+                    <div class="flex flex-col w-1/2 gap-4">
+                        <!-- Description -->
+                        <div>
+                            <p-floatlabel variant="on">
+                                <textarea id="descriptionInput" rows="2" pTextarea
+                                    class="flex w-full" formControlName="description"></textarea>
+                                <label for="descriptionInput">Description</label>
+                            </p-floatlabel>
+                        </div>
+                    </div>
+                </div>
+            
+                <p-fileupload mode="advanced" name="demo[]" chooseIcon="pi pi-upload"
+                        accept="image/*" maxFileSize="10000000"
+                        (onSelect)="selectImage($event, 'image')" [auto]="true" chooseLabel="Browse" />
+
+                     <!-- 🟩 Section Catégories -->
+                    <div class="border border-gray-300 rounded-xl p-4 mt-4 bg-white shadow-sm">
+
+                    <!-- 🏷️ Titre -->
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Categories</label>
+
+                    <!-- 🔽 Sélecteur + bouton -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <!-- Autocomplete -->
+                        <app-autocomplete
+                            [(details)]="categoriesAutocompleteDetails"
+                            [control]="form.get('category')"
+                        />
+
+                        <!-- Bouton Add -->
+                         <button
+                            type="button"
+                            class="flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-2 rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+                            (click)="addCategory()"
+                            [disabled]="!form.get('category')!.value || categoriesAutocompleteDetails.filteredValues?.length == 0">
+                            <i class="pi pi-plus text-xs"></i>
+                            Add
+                        </button>
+                    </div>
+
+                    <!-- 🏷️ Catégories sélectionnées -->
+                    <div class="flex flex-wrap gap-2">
+                        @for(category of categoriesAutocompleteDetails?.initialValues; track category) {
+                            @if(isCategorySelecteed(category)) {
+                                <div 
+                                    class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 border border-gray-300 rounded-full hover:bg-blue-50 hover:border-blue-400 transition"
+                                >
+                                    <span class="text-gray-800 text-sm font-medium">{{ category.label }}</span>
+                                    <i 
+                                    class="pi pi-times text-gray-500 hover:text-red-600 text-sm cursor-pointer transition"
+                                    (click)="removeCategory(category)">
+                                    </i>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    </div>
+
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-between mt-4">
+                <p-button label="Cancel" icon="pi pi-times" text (click)="cancelAdding()" />
+                <p-button label="Save" icon="pi pi-check" type="submit" form="productForm" [disabled]="submitIsLoading" [loading]="submitIsLoading" />
+            </div>
+        </form>
+    </ng-template>
+</p-dialog>

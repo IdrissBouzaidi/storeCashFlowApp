@@ -1,0 +1,104 @@
+<p-dialog [visible]="dialogStatus.dialogIsVisible" [style]="{ width: '450px' }" header="Adding Advance"
+    [modal]="true" (visibleChange)="cancelInputAdding()">
+    <ng-template #content>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" id="capitalContrForm">
+            <div class="flex flex-col mt-2 gap-4">
+                <div class="flex gap-4">
+                    <!-- Colonne gauche -->
+                    <div class="flex flex-col w-1/2 gap-4">
+
+                        <!-- Amount -->
+                        <div>
+                            <p-floatlabel variant="on">
+                                <p-inputnumber id="amountInput" formControlName="amount"
+                                    mode="decimal" [min]="0" [maxFractionDigits]="2"
+                                    class="flex w-full"
+                                    [class.ng-invalid]="form.get('amount')?.invalid && form.get('amount')?.touched"
+                                    [class.ng-dirty]="true" />
+                                <label for="amountInput">Amount *</label>
+                            </p-floatlabel>
+                            <div *ngIf="form.get('amount')?.invalid && form.get('amount')?.touched" class="text-red-500 text-sm ml-1">
+                                {{getFieldError('amount')}}
+                            </div>
+                        </div>
+
+                        <!-- Customer -->
+                        <app-autocomplete
+                            [(details)]="customerAutocompleteDetails"
+                            [control]="form.get('customer')" />
+
+                
+                        <!-- Description -->
+                        <div>
+                            <p-floatlabel variant="on">
+                                <textarea id="descriptionInput" rows="2" pTextarea
+                                    class="flex w-full" formControlName="description"></textarea>
+                                <label for="descriptionInput">Description</label>
+                            </p-floatlabel>
+                        </div>
+                    </div>
+
+                    <!-- Colonne droite -->
+                    <div class="flex flex-col w-1/2 gap-4">
+
+                        <!-- Short description -->
+                        <div>
+                            <p-floatlabel variant="on">
+                                <input pInputText id="shortDesc" type="text"
+                                    class="flex w-full" formControlName="shortDesc"
+                                    [class.ng-invalid]="form.get('shortDesc')?.invalid && form.get('shortDesc')?.touched"
+                                    [class.ng-dirty]="true" />
+                                <label for="shortDesc">Short description</label>
+                            </p-floatlabel>
+                            <div *ngIf="form.get('shortDesc')?.invalid && form.get('shortDesc')?.touched" class="text-red-500 text-sm ml-1">
+                                {{getFieldError('shortDesc')}}
+                            </div>
+                        </div>
+
+                        <!-- Credit Date -->
+                        <div>
+                            <p-floatlabel variant="on">
+                                <p-datepicker id="creditDate"
+                                    formControlName="creditDate"
+                                    [showButtonBar]="true"
+                                    dateFormat="dd MM yy"
+                                    appendTo="body"
+                                    [class.ng-invalid]="form.get('creditDate')?.invalid && form.get('creditDate')?.touched"
+                                    [class.ng-dirty]="true" />
+                                <label for="creditDate">Credit date *</label>
+                            </p-floatlabel>
+                            <div *ngIf="form.get('creditDate')?.invalid && form.get('creditDate')?.touched" class="text-red-500 text-sm ml-1">
+                                {{getFieldError('creditDate')}}
+                            </div>
+                        </div>
+                        
+                        <!-- Credit time -->
+                        <div>
+                            <p-floatlabel variant="on">
+                                <p-datepicker 
+                                    id="creditTime"
+                                    formControlName="creditTime"
+                                    [timeOnly]="true"
+                                    [showButtonBar]="true"
+                                    appendTo="body"
+                                    [class.ng-invalid]="form.get('creditTime')?.invalid && form.get('creditTime')?.touched"
+                                    [class.ng-dirty]="true">
+                                </p-datepicker>
+                                <label for="creditTime">Credit time *</label>
+                            </p-floatlabel>
+                            <div *ngIf="form.get('creditTime')?.invalid && form.get('creditTime')?.touched" class="text-red-500 text-sm ml-1">
+                                {{getFieldError('creditTime')}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-between mt-4">
+                <p-button label="Cancel" icon="pi pi-times" text (click)="cancelInputAdding()" />
+                <p-button label="Save" icon="pi pi-check" type="submit" form="capitalContrForm" />
+            </div>
+        </form>
+    </ng-template>
+</p-dialog>

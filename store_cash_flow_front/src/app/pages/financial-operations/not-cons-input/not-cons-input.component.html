@@ -1,0 +1,39 @@
+<form [formGroup]="form">
+    <div class="flex card flex-col w-full gap-8">
+        
+        <div class="font-semibold text-xl mb-2">Financial operations: Non consumable inputs</div>
+        <div class="flex flex-column gap-6">
+            <div class="flex gap-4">
+                <p-floatlabel variant="on">
+                    <p-datepicker id="transactionDateMin" formControlName="transactionDateMin" [showButtonBar]="true" dateFormat="dd MM yy" />
+                    <label for="transactionDateMin">Transaction date min</label>
+                </p-floatlabel>
+                <p-floatlabel variant="on">
+                    <p-datepicker id="transactionDateMax" formControlName="transactionDateMax" [showButtonBar]="true" dateFormat="dd MM yy" />
+                    <label for="transactionDateMax">Transaction date max</label>
+                </p-floatlabel>
+                <app-autocomplete
+                    [(details)]="periodsAutocompleteDetails"
+                    [control]="form.get('period')" />
+                <app-autocomplete
+                    [(details)]="executedByAutocompleteDetails"
+                    [control]="form.get('executedBy')" />
+
+                <app-autocomplete
+                    [(details)]="notConsInputStatesAutocompleteDetails"
+                    [control]="form.get('notConsInputState')"
+                />
+            </div>
+            <div class="flex">
+                <p-button label="Search" icon="pi pi-search" [loading]="searchButtonIsLoading" (click)="getData()" />
+            </div>
+        </div>
+        <ng-container *ngIf="notConsInputsList$">
+            <app-not-cons-input-array [dataList$]="notConsInputsList$" (onAddNotConsInputClick)="onAddNotConsInputClick()"/>
+        </ng-container>
+    </div>
+
+    <app-transaction-adding-form [dialogStatus]="addNotConsInputDialogStatus"
+                                (dialogStatusChange)="onDialogStatusChanged($event)"
+                                *ngIf="addNotConsInputDialogStatus.dialogIsVisible" />
+</form>

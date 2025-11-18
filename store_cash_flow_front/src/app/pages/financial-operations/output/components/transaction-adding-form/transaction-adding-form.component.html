@@ -1,0 +1,133 @@
+<p-dialog [visible]="dialogStatus.dialogIsVisible" [style]="{ width: '450px' }" header="Adding outputs"
+    (visibleChange)="cancelOutputAdding()" [modal]="true" (onHide)="cancelOutputAdding()">
+    <ng-template #content>
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" id="consumableForm">
+            <div class="flex flex-col mt-2 gap-6">
+                <div class="flex gap-4">
+
+                    <!-- Product -->
+                    <app-autocomplete
+                        [(details)]="productsAutocompleteDetails"
+                        (onSelect)="selectProduct($event)"
+                        [control]="form.get('product')" />
+
+                    <!-- Input -->
+                    <app-autocomplete
+                        [(details)]="consInputsLabelsAutocompleteDetails"
+                        [control]="form.get('consInputLabel')"
+                        (onSelect)="selectConsInput($event)" />
+                    <!-- Cost -->
+                    <app-autocomplete
+                        [(details)]="consInputsCostsAutocompleteDetails"
+                        [control]="form.get('consInputCost')"
+                        (onSelect)="selectConsInput($event)" />
+                </div>
+                <div class="flex gap-4">
+                    <!-- Colonne gauche -->
+                    <div class="flex flex-col w-1/2 gap-4">
+
+                        <div>
+                            <p-floatlabel variant="on">
+                                <p-inputnumber id="priceInput" formControlName="price"
+                                    mode="decimal" [min]="0" [maxFractionDigits]="2"
+                                    class="flex w-full"
+                                    [class.ng-invalid]="form.get('price')?.invalid && form.get('price')?.touched"
+                                    [class.ng-dirty]="true" />
+                                <label for="priceInput">Price *</label>
+                            </p-floatlabel>
+                            <div *ngIf="form.get('price')?.invalid && form.get('price')?.touched" class="text-red-500 text-sm ml-1">
+                                {{getFieldError('price')}}
+                            </div>
+                        </div>
+
+                        <!-- Quantity -->
+                        <div>
+                            <p-floatlabel variant="on">
+                                <p-inputnumber id="quantityInput"
+                                    formControlName="quantity"
+                                    [showButtons]="true"
+                                    mode="decimal"
+                                    [min]="1"
+                                    [max]="selectedRemainingInputQuantity"
+                                    class="flex w-full"
+                                    [class.ng-invalid]="form.get('quantity')?.invalid && form.get('quantity')?.touched"
+                                    [class.ng-dirty]="true" />
+                                <label for="quantityInput">Quantity *</label>
+                            </p-floatlabel>
+                            <div *ngIf="form.get('quantity')?.invalid && form.get('quantity')?.touched" class="text-red-500 text-sm ml-1">
+                                {{getFieldError('quantity')}}
+                            </div>
+                        </div>
+                        
+                        <!-- Transaction state -->
+                        <app-autocomplete
+                            [(details)]="productsTransactionStatesAutocompleteDetails"
+                            [control]="form.get('state')" />
+
+                    </div>
+
+                    <!-- Colonne droite -->
+                    <div class="flex flex-col w-1/2 gap-4">
+
+                        <!-- Sold by -->
+                        <app-autocomplete
+                            [(details)]="soldByAutocompleteDetails"
+                            [control]="form.get('soldBy')" />
+
+
+
+                        <!-- Transaction Date -->
+                        <div>
+                            <p-floatlabel variant="on">
+                                <p-datepicker id="transactionDate"
+                                    formControlName="transactionDate"
+                                    [showButtonBar]="true"
+                                    dateFormat="dd MM yy"
+                                    appendTo="body"
+                                    [class.ng-invalid]="form.get('transactionDate')?.invalid && form.get('transactionDate')?.touched"
+                                    [class.ng-dirty]="true" />
+                                <label for="transactionDate">Transaction date *</label>
+                            </p-floatlabel>
+                            <div *ngIf="form.get('transactionDate')?.invalid && form.get('transactionDate')?.touched" class="text-red-500 text-sm ml-1">
+                                {{getFieldError('transactionDate')}}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <p-floatlabel variant="on">
+                                <p-datepicker 
+                                    id="transactionTime"
+                                    formControlName="transactionTime"
+                                    [timeOnly]="true"
+                                    [showButtonBar]="true"
+                                    appendTo="body"
+                                    [class.ng-invalid]="form.get('transactionTime')?.invalid && form.get('transactionTime')?.touched"
+                                    [class.ng-dirty]="true">
+                                </p-datepicker>
+                                <label for="transactionTime">Transaction time *</label>
+                            </p-floatlabel>
+                            <div *ngIf="form.get('transactionTime')?.invalid && form.get('transactionTime')?.touched" class="text-red-500 text-sm ml-1">
+                                {{getFieldError('transactionTime')}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Description -->
+                <div>
+                    <p-floatlabel variant="on">
+                        <textarea id="descriptionOutput" rows="2" pTextarea
+                            class="flex w-full" formControlName="description"></textarea>
+                        <label for="descriptionOutput">Description</label>
+                    </p-floatlabel>
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="flex justify-between mt-4">
+                <p-button label="Cancel" icon="pi pi-times" text (click)="cancelOutputAdding()" />
+                <p-button label="Save" icon="pi pi-check" type="submit" form="consumableForm" />
+            </div>
+        </form>
+    </ng-template>
+</p-dialog>

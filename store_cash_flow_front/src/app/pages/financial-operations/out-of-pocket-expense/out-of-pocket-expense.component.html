@@ -1,0 +1,39 @@
+<form [formGroup]="form" (ngSubmit)="getData()" id="outOfPocketForm">
+    <div class="flex card flex-col w-full gap-8">
+        
+        <div class="font-semibold text-xl mb-2">Financial operations: Out of pocket expense</div>
+        <div class="flex flex-column gap-6">
+            <div class="flex gap-4">
+                <p-floatlabel variant="on">
+                    <p-datepicker id="transactionDateMin"  [showButtonBar]="true" dateFormat="dd MM yy"
+                            formControlName="transactionDateMin" />
+                    <label for="transactionDateMin">Transaction date min</label>
+                </p-floatlabel>
+                <p-floatlabel variant="on">
+                    <p-datepicker id="transactionDateMax" [showButtonBar]="true" dateFormat="dd MM yy"
+                            formControlName="transactionDateMax" />
+                    <label for="transactionDateMax">Transaction date max</label>
+                </p-floatlabel>
+                <app-autocomplete
+                    [(details)]="statesAutocompleteDetails"
+                    [control]="form.get('state')" />
+                <app-autocomplete
+                    [(details)]="periodsAutocompleteDetails"
+                    [control]="form.get('period')" />
+                <app-autocomplete
+                    [(details)]="borrowersAutocompleteDetails"
+                    [control]="form.get('borrower')" />
+            </div>
+            <div class="flex">
+                <p-button label="Search" type="submit" form="outOfPocketForm" icon="pi pi-search" [loading]="searchButtonIsLoading" />
+            </div>
+        </div>
+        <ng-container *ngIf="outOfPocketsList$">
+            <app-out-of-pocket-expense-array [dataList$]="outOfPocketsList$" (onAddOutOfPocketClick)="onAddOutOfPocketClick()"/>
+        </ng-container>
+    </div>
+</form>
+
+<app-transaction-adding-form [dialogStatus]="addOutOfPocketDialogStatus"
+                            (dialogStatusChange)="onDialogStatusChanged($event)"
+                            *ngIf="addOutOfPocketDialogStatus.dialogIsVisible" />

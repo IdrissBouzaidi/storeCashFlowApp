@@ -1,0 +1,150 @@
+<p-table
+    #dt1
+    [value]="data"
+    dataKey="id"
+    [rows]="10"
+    [rowsPerPageOptions]="[10, 25, 50]"
+    [loading]="dataIsLoading"
+    [rowHover]="true"
+    [paginator]="data.length>10"
+    [showGridlines]="true"
+    [scrollable]="true"
+    scrollHeight="30rem"
+    [globalFilterFields]="attributesCodes"
+    [resizableColumns]="true"
+    columnResizeMode="expand"
+    styleClass="p-datatable-gridlines"
+    [size]="'small'"
+    responsiveLayout="scroll"
+
+    sortMode="multiple"
+    [multiSortMeta]="multiSortMeta"
+
+    selectionMode="single"
+    [(selection)]="selectedLine"
+>
+    
+    <ng-template #caption>
+        <div class="flex flex-column sm:flex-row p-3 border-b-2 justify-between">
+            <p-button label="Effacer les filtres" icon="pi pi-filter-slash" (click)="clear(dt1)" />
+            <p-button label="New" icon="pi pi-plus" severity="secondary" class="mr-2" (onClick)="onAddCapitalContrClick.emit()" [disabled]="!lastPeriodIsInProgress" />
+        </div>
+    </ng-template>
+
+
+    <ng-template #header>
+        <tr>
+            <th pFrozenColumn><p-tableHeaderCheckbox class="ml-2 mr-2" /></th>
+            @for(code of attributesCodes; track code) {
+                @if(code === 'id') {
+                    <th pResizableColumn [pSortableColumn]="code" pFrozenColumn>
+                        <ng-container [ngTemplateOutlet]="headerTemplate" [ngTemplateOutletContext]=" {code: code} "></ng-container>
+                    </th>
+                }
+                @else {
+                    <th pResizableColumn [pSortableColumn]="code">
+                        <ng-container [ngTemplateOutlet]="headerTemplate" [ngTemplateOutletContext]=" {code: code} "></ng-container>
+                    </th>
+                }
+            }
+            <ng-template #headerTemplate let-code="code">
+                <div class="flex justify-between items-center gap-3">
+                    <div>
+                        {{attributsDetailsMap[code].libelle}}<span *ngIf="attributsDetailsMap[code].isMontant">&nbsp;(DH)</span>
+                    </div>
+                    <div>
+                        <p-sortIcon [field]="code" />
+                        <p-columnFilter [type]="attributsDetailsMap[code].type" [field]="code" display="menu" />
+                    </div>
+                </div>
+            </ng-template>
+            <th alignFrozen="right" pFrozenColumn balanceFrozen="true"></th>
+        </tr>
+    </ng-template>
+    <ng-template #body let-item>
+        <tr [pSelectableRow]="item" class="body-tr" >
+            <td class="justify-center" pFrozenColumn>
+                <p-tableCheckbox [value]="item" class="ml-2 mr-2" />
+            </td>
+            @for(code of attributesCodes; track code) {
+                @if(code === 'id') {
+                    <td class="array-td" pFrozenColumn style="width: 95%" class="text-right">
+                        <div class="flex items-center gap-2">
+                            {{item[code]}}
+                        </div>
+                    </td>
+                }
+                @else {
+                    <td class="array-td">
+                        <div class="flex items-center gap-2">
+                            @if(attributsDetailsMap[code].type === 'date' && isDate(item[code])) {
+                                {{item[code] | date: 'dd/MM/yyyy'}}
+                            }
+                            @else if(attributsDetailsMap[code].type === 'time' && isDate(item[code])) {
+                                {{item[code] | date: 'HH:mm:ss'}}
+                            }
+                            @else if(attributsDetailsMap[code].type === 'numeric') {
+                                <span style="width: 95%" class="text-right">
+                                    {{item[code]}}
+                                </span>
+                            }
+                            @else if(attributsDetailsMap[code].type === 'list' && attributsDetailsMap[code].listCode) {
+                                {{refTablesMap[attributsDetailsMap[code].listCode][item[code]]?.label}}
+                            }
+                            @else {
+                                {{item[code]}}
+                            }
+                        </div>
+                    </td>
+                }
+            }
+            <td class="array-td" alignFrozen="right" pFrozenColumn balanceFrozen="true">
+                <div class="options-menu flex justify-center">
+                    <p-button (click)="toggleMenu(item, $event)" icon="pi pi-ellipsis-v"/>
+                </div>
+            </td>
+        </tr>
+    </ng-template>
+    <ng-template #emptymessage>
+        <tr>
+            <td colspan="7">Tableau vide.</td>
+        </tr>
+    </ng-template>
+</p-table>
+<p-menu #menu [model]="items" [popup]="true" appendTo="body" />
+
+<p-dialog 
+    header="Confirm Capital Contribution Cancellation"
+    [(visible)]="cancelCapitalContributionDialogIsVisible"
+    [modal]="true"
+    [style]="{width: '30rem'}"
+>
+    <div class="flex flex-col mt-4 mb-4 gap-4">
+        <p class="text-gray-700">
+            Are you sure you want to <b>cancel</b> this capital contribution?  
+            This action will mark the capital contribution as <b>canceled</b> and it will no longer be active.
+        </p>
+    </div>
+
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+            <button 
+                pButton
+                label="No" 
+                icon="pi pi-times" 
+                class="p-button-text" 
+                (click)="cancelCapitalContributionDialogIsVisible = false">
+            </button>
+
+            <button 
+                pButton 
+                label="Yes, Cancel Capital Contribution" 
+                icon="pi pi-ban" 
+                class="p-button-danger"
+                [disabled]="cancelDialogIsLoading"
+                [loading]="cancelDialogIsLoading"
+                (click)="onConfirmCancelCapitalContribution()">
+            </button>
+        </div>
+    </ng-template>
+</p-dialog>

@@ -1,0 +1,40 @@
+
+<form [formGroup]="form">
+    <div class="flex card flex-col w-full gap-8">
+    
+        <div class="font-semibold text-xl mb-2">Financial operations: Customer credits</div>
+        <div class="flex flex-column gap-6">
+            <div class="flex gap-4">
+                <p-floatlabel variant="on">
+                    <p-datepicker id="creditDateMin" [showButtonBar]="true"
+                    formControlName="creditDateMin" dateFormat="dd MM yy" />
+                    <label for="creditDateMin">Credit date min</label>
+                </p-floatlabel>
+                <p-floatlabel variant="on">
+                    <p-datepicker id="creditDateMax" [showButtonBar]="true"
+                    formControlName="creditDateMax" dateFormat="dd MM yy" />
+                    <label for="creditDateMax">Credit date max</label>
+                </p-floatlabel>
+                <app-autocomplete
+                    [(details)]="transactionStatesAutocompleteDetails"
+                    [control]="form.get('transactionState')" />
+                <app-autocomplete
+                    [(details)]="periodsAutocompleteDetails"
+                    [control]="form.get('period')" />
+                <app-autocomplete
+                    [(details)]="customerAutocompleteDetails"
+                    [control]="form.get('customer')" />
+            </div>
+            <div class="flex">
+                <p-button label="Search" icon="pi pi-search" [loading]="searchButtonIsLoading" (click)="getData()" />
+            </div>
+        </div>
+        <ng-container *ngIf="customerCreditList$">
+            <app-customer-credit-array [dataList$]="customerCreditList$" (onAddCustomerCreditClick)="onAddCustomerCreditClick()"/>
+        </ng-container>
+    </div>
+</form>
+
+<app-transaction-adding-form [dialogStatus]="addCustomerCreditDialogStatus"
+                            (dialogStatusChange)="onDialogStatusChanged($event)"
+                            *ngIf="addCustomerCreditDialogStatus.dialogIsVisible" />
